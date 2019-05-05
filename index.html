@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+    <title>YouTube Tokens</title>
+  </head>
+  <body>
+    <dl>
+      <dt>Client Id:</dt>
+      <dd id="clientId"></dd>
+      <dt>Client Secret:</dt>
+      <dd id="clientSecret"></dd>
+    </dl>
+    <button id="btnGetCode">Get Offline Authorization Code</button>
+    <dl>
+      <dt>Code:</dt>
+      <dd id="code"></dd>
+      <dt>Scope:</dt>
+      <dd id="scope"></dd>
+    </dl>
+    <button id="btnGetTokens">Get Tokens</button>
+    <div>
+      <label>Tokens:</label>
+      <pre id="tokens"></pre>
+    </div>
+    <script>
+      (() => {
+        const localServer = 'http://localhost:5000';
+        const apiUri = 'https://www.googleapis.com/youtube/v3';
+        const redirectEndpoint = '/redirect';
+        const scope = 'https://www.googleapis.com/auth/youtube.upload';
+
+        let creds; 
+        let code;
+
+        let params = new URLSearchParams(window.location.search);
+
+        if (params.has('code')) {
+          code = params.get('code');
+          document.getElementById('code').innerText = code;
+          document.getElementById('scope').innerText = params.get('scope');
+
+          document.getElementById('btnGetTokens').removeAttribute('disabled');
+        } 
+
+        fetch(`${localServer}/oauthCreds.json`)
+            .then((oauth) => {
+              return oauth.json();
+            })
+            .then((json) => {
+              creds = json;
+
+              document.getElementById('clientId').innerText = creds.client_id;
+              document.getElementById('clientSecret').innerText = creds.client_secret;
+            });
+
+        document.getElementById('btnGetCode').addEventListener('click', () => {
+          let redirectUrl = `${localServer}${redirectEndpoint}`;
+          let url = `${creds.auth_uri}?redirect_uri=${redirectUrl}&prompt=consent&response_type=code&client_id=${creds.client_id}&scope=${scope}&access_type=offline`;
+          window.location = url;
+        });
+
+        document.getElementById('btnGetTokens').addEventListener('click', () => {
+
+          document.getElementById('btnGetTokens').setAttribute('disabled', 'disabled');
+
+          fetch(`${creds.token_uri}`, {
+            method: 'POST',
+            body: `{
+              "code": "${code}",
+              "redirect_uri": "${localServer}${redirectEndpoint}",
+              "client_id": "${creds.client_id}",
+              "client_secret": "${creds.client_secret}",
+              "grant_type": "authorization_code"
+            }`
+          })
+          .then((response) => {
+            return response.json();
+          })
+          .then((json) => {
+            document.getElementById('tokens').innerText = JSON.stringify(json, null, 3);
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>
