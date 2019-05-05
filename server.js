@@ -23,8 +23,8 @@ app.use('/', (req, res) => {
 })
 
 app.use('/redirect', (req, res) => {
-  console.info(req.query.code); // 4/QQEwK22OHH41HqjA287aNfPlO7Xy2y1OqbQ3NDAfCxuR71776wTcP_QaSY-0iVnxLDX8ChRtXaG1KiPn7Gsu2bE
-  console.info(req.query.scope); // https://www.googleapis.com/auth/youtube.upload
+  console.info(req.query.code);
+  console.info(req.query.scope);
   res.redirect(`/?code=${req.query.code}&scope=${req.query.scope}`);
 });
 
