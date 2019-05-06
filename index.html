@@ -3,6 +3,8 @@
   <head>
     <meta charset=utf-8>
     <title>Social Media Tokens</title>
+    <script src="youtube.js"></script>
+    <script src="facebook.js"></script>
   </head>
   <body>
     <section>
@@ -48,24 +50,14 @@
         <pre id="facebookLongToken"></pre>
       </div>
     </section>
+  
     <script>
-      (() => {
+      (async () => {
         const localServer = 'http://localhost:5000';
-        const apiUri = 'https://www.googleapis.com/youtube/v3';
-        const redirectEndpoint = '/redirect';
-        const scope = 'https://www.googleapis.com/auth/youtube.upload';
-        const facebookScope = 'ads_management';
-        const facebookRedirect = '/fbredirect';
-
-        let creds; 
-        let code;
-        let facebookCode;
-        let facebookToken;
-
-        let params = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(window.location.search);
 
         if (params.has('code')) {
-          let type = params.get('type');
+          const type = params.get('type');
           if (type == 'youtube') {
             code = params.get('code');
             document.getElementById('code').textContent = code;
@@ -80,72 +72,29 @@
           }  
         }
 
-        fetch(`${localServer}/oauthCreds.json`)
-            .then((oauth) => {
-              return oauth.json();
-            })
-            .then((json) => {
-              creds = json;
+        const oauth = await fetch(`${localServer}/oauthCreds.json`)
+        creds = await oauth.json();
+        document.getElementById('clientId').textContent = creds.client_id;
+        document.getElementById('clientSecret').textContent = creds.client_secret;
+        document.getElementById('appId').textContent = creds.app_id;
 
-              document.getElementById('clientId').textContent = creds.client_id;
-              document.getElementById('clientSecret').textContent = creds.client_secret;
-              document.getElementById('appId').textContent = creds.app_id;
-            });
-
-        document.getElementById('btnGetCode').addEventListener('click', () => {
-          let redirectUrl = `${localServer}${redirectEndpoint}`;
-          let url = `${creds.auth_uri}?redirect_uri=${redirectUrl}&prompt=consent&response_type=code&client_id=${creds.client_id}&scope=${scope}&access_type=offline`;
-          window.location = url;
+        const youTube = YouTube.init({
+          localServer: localServer,
+          creds: creds
         });
 
-        document.getElementById('btnGetTokens').addEventListener('click', () => {
-          fetch(`${creds.token_uri}`, {
-            method: 'POST',
-            body: `{
-              "code": "${code}",
-              "redirect_uri": "${localServer}${redirectEndpoint}",
-              "client_id": "${creds.client_id}",
-              "client_secret": "${creds.client_secret}",
-              "grant_type": "authorization_code"
-            }`
-          })
-          .then((response) => {
-            document.getElementById('btnGetTokens').setAttribute('disabled', 'disabled');
-            return response.json();
-          })
-          .then((json) => {
-            document.getElementById('tokens').textContent = JSON.stringify(json, null, 3);
-          });
-        });
+        document.getElementById('btnGetCode').addEventListener('click', youTube.getCode);
+        document.getElementById('btnGetTokens').addEventListener('click', async () => await youTube.getTokens());
+        
+        const facebook = Facebook.init({
+          localServer: localServer,
+          creds: creds
+        })
 
-        document.getElementById('btnGetFacebookCode').addEventListener('click', () => {
-          let redirectUrl = `${localServer}${facebookRedirect}`;
-          let url = `${creds.facebook_auth_uri}?client_id=${creds.app_id}&redirect_uri=${redirectUrl}&scope=${facebookScope}`;
-          window.location = url;
-        });
+        document.getElementById('btnGetFacebookCode').addEventListener('click', facebook.getCode);
+        document.getElementById('btnGetFacebookToken').addEventListener('click', async () => await facebook.getToken());
+        document.getElementById('btnExchangeToken').addEventListener('click', async () => await facebook.exchangeToken());
 
-        document.getElementById('btnGetFacebookToken').addEventListener('click', () => {
-          let redirectUrl = `${localServer}${facebookRedirect}`
-          fetch(`${creds.facebook_token_uri}?client_id=${creds.app_id}&redirect_uri=${redirectUrl}&client_secret=${creds.app_secret}&code=${facebookCode}`)
-          .then((response) => {
-            document.getElementById('btnGetFacebookToken').setAttribute('disabled', 'disabled');
-            return response.json();
-          })
-          .then((json) => {
-            facebookToken = json.access_token;
-            document.getElementById('facebookToken').textContent = JSON.stringify(json, null, 3);
-          });
-        });
-
-        document.getElementById('btnExchangeToken').addEventListener('click', () => {
-          fetch(`${creds.facebook_token_uri}?client_id=${creds.app_id}&client_secret=${creds.app_secret}&grant_type=fb_exchange_token&fb_exchange_token=${facebookToken}`)
-          .then((response) => {
-            return response.json();
-          })
-          .then((json) => {
-            document.getElementById('facebookLongToken').textContent = JSON.stringify(json, null, 3);
-          });
-        });
       })();
     </script>
   </body>
