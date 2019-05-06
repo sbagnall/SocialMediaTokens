@@ -13,7 +13,7 @@ const YouTube = (() => {
                 window.location = url;
             },
 
-            getTokens: async () => {
+            getTokens: async (code) => {
                 const response = await fetch(`${youtubeTokenUri}`, {
                     method: 'POST',
                     body: `{
@@ -24,10 +24,7 @@ const YouTube = (() => {
                         "grant_type": "authorization_code"
                     }`
                 });
-                const json = await response.json();
-            
-                document.getElementById('btnGetTokens').setAttribute('disabled', 'disabled');
-                document.getElementById('tokens').textContent = JSON.stringify(json, null, 3);
+                return await response.json();
             }
         };
     };

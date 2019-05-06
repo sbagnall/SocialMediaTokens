@@ -15,17 +15,17 @@
         <dt>Client Secret:</dt>
         <dd id="clientSecret"></dd>
       </dl>
-      <button id="btnGetCode">Get Offline Authorization Code</button>
+      <button id="btnGetYouTubeCode">Get Offline Authorization Code</button>
       <dl>
         <dt>Code:</dt>
-        <dd id="code"></dd>
+        <dd id="youTubeCode"></dd>
         <dt>Scope:</dt>
         <dd id="scope"></dd>
       </dl>
-      <button id="btnGetTokens">Get Tokens</button>
+      <button id="btnGetYouTubeTokens">Get Tokens</button>
       <div>
         <label>Tokens:</label>
-        <pre id="tokens"></pre>
+        <pre id="youTubeTokens"></pre>
       </div>
     </section>
     <section>
@@ -56,14 +56,17 @@
         const localServer = 'http://localhost:5000';
         const params = new URLSearchParams(window.location.search);
 
+        let youTubeCode;
+        let facebookCode;
+
         if (params.has('code')) {
           const type = params.get('type');
           if (type == 'youtube') {
-            code = params.get('code');
-            document.getElementById('code').textContent = code;
+            youTubeCode = params.get('code');
+            document.getElementById('youTubeCode').textContent = youTubeCode;
             document.getElementById('scope').textContent = params.get('scope');
 
-            document.getElementById('btnGetTokens').removeAttribute('disabled');
+            document.getElementById('btnGetYouTubeTokens').removeAttribute('disabled');
           } else if (type == 'facebook') {
             facebookCode = params.get('code');
             document.getElementById('facebookCode').textContent = facebookCode;
@@ -83,8 +86,12 @@
           creds: creds
         });
 
-        document.getElementById('btnGetCode').addEventListener('click', youTube.getCode);
-        document.getElementById('btnGetTokens').addEventListener('click', async () => await youTube.getTokens());
+        document.getElementById('btnGetYouTubeCode').addEventListener('click', youTube.getCode);
+        document.getElementById('btnGetYouTubeTokens').addEventListener('click', async () => {
+          const json = await youTube.getTokens(youTubeCode);
+          document.getElementById('btnGetYouTubeTokens').setAttribute('disabled', 'disabled');
+          document.getElementById('youTubeTokens').textContent = JSON.stringify(json, null, 3);
+        });
         
         const facebook = Facebook.init({
           localServer: localServer,
@@ -92,8 +99,15 @@
         })
 
         document.getElementById('btnGetFacebookCode').addEventListener('click', facebook.getCode);
-        document.getElementById('btnGetFacebookToken').addEventListener('click', async () => await facebook.getToken());
-        document.getElementById('btnExchangeToken').addEventListener('click', async () => await facebook.exchangeToken());
+        document.getElementById('btnGetFacebookToken').addEventListener('click', async () => {
+          const json = await facebook.getToken(facebookCode);
+          document.getElementById('btnGetFacebookToken').setAttribute('disabled', 'disabled');
+          document.getElementById('facebookToken').textContent = JSON.stringify(json, null, 3);
+        });
+        document.getElementById('btnExchangeToken').addEventListener('click', async () => {
+          const json = await facebook.exchangeToken();
+          document.getElementById('facebookLongToken').textContent = JSON.stringify(json, null, 3);
+        });
 
       })();
     </script>

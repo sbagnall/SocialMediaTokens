@@ -1,32 +1,29 @@
 const Facebook = (() => {
     
-    const facebookAuthUri = "https://www.facebook.com/v3.3/dialog/oauth",
-        facebookTokenUri = "https://graph.facebook.com/v3.3/oauth/access_token",
-        facebookRedirect = '/fbredirect',
-        facebookScope = 'ads_management';
+    const authUri = "https://www.facebook.com/v3.3/dialog/oauth",
+        tokenUri = "https://graph.facebook.com/v3.3/oauth/access_token",
+        redirect = '/fbredirect',
+        scope = 'ads_management';
 
-    let facebookToken;
+    let token;
 
     const init = ({ localServer, creds }) => {
         return {
             getCode: () => {
-                const redirectUrl = `${localServer}${facebookRedirect}`;
-                const url = `${facebookAuthUri}?client_id=${creds.app_id}&redirect_uri=${redirectUrl}&scope=${facebookScope}`;
+                const redirectUrl = `${localServer}${redirect}`;
+                const url = `${authUri}?client_id=${creds.app_id}&redirect_uri=${redirectUrl}&scope=${scope}`;
                 window.location = url;
             },
-            getToken: async () => {
-                const redirectUrl = `${localServer}${facebookRedirect}`
-                const response = await fetch(`${facebookTokenUri}?client_id=${creds.app_id}&redirect_uri=${redirectUrl}&client_secret=${creds.app_secret}&code=${facebookCode}`);
+            getToken: async (code) => {
+                const redirectUrl = `${localServer}${redirect}`
+                const response = await fetch(`${tokenUri}?client_id=${creds.app_id}&redirect_uri=${redirectUrl}&client_secret=${creds.app_secret}&code=${code}`);
                 const json = await response.json();
-                facebookToken = json.access_token;
-            
-                document.getElementById('btnGetFacebookToken').setAttribute('disabled', 'disabled');
-                document.getElementById('facebookToken').textContent = JSON.stringify(json, null, 3);
+                token = json.access_token;
+                return json;
             },
             exchangeToken: async () => {
-                const response = await fetch(`${facebookTokenUri}?client_id=${creds.app_id}&client_secret=${creds.app_secret}&grant_type=fb_exchange_token&fb_exchange_token=${facebookToken}`)
-                const json = await response.json();
-                document.getElementById('facebookLongToken').textContent = JSON.stringify(json, null, 3);
+                const response = await fetch(`${tokenUri}?client_id=${creds.app_id}&client_secret=${creds.app_secret}&grant_type=fb_exchange_token&fb_exchange_token=${token}`)
+                return await response.json();
             }
         };
     };
