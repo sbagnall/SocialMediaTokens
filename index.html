@@ -68,13 +68,13 @@
           let type = params.get('type');
           if (type == 'youtube') {
             code = params.get('code');
-            document.getElementById('code').innerText = code;
-            document.getElementById('scope').innerText = params.get('scope');
+            document.getElementById('code').textContent = code;
+            document.getElementById('scope').textContent = params.get('scope');
 
             document.getElementById('btnGetTokens').removeAttribute('disabled');
           } else if (type == 'facebook') {
             facebookCode = params.get('code');
-            document.getElementById('facebookCode').innerText = facebookCode;
+            document.getElementById('facebookCode').textContent = facebookCode;
 
             document.getElementById('btnGetFacebookToken').removeAttribute('disabled');
           }  
@@ -87,9 +87,9 @@
             .then((json) => {
               creds = json;
 
-              document.getElementById('clientId').innerText = creds.client_id;
-              document.getElementById('clientSecret').innerText = creds.client_secret;
-              document.getElementById('appId').innerText = creds.app_id;
+              document.getElementById('clientId').textContent = creds.client_id;
+              document.getElementById('clientSecret').textContent = creds.client_secret;
+              document.getElementById('appId').textContent = creds.app_id;
             });
 
         document.getElementById('btnGetCode').addEventListener('click', () => {
@@ -114,7 +114,7 @@
             return response.json();
           })
           .then((json) => {
-            document.getElementById('tokens').innerText = JSON.stringify(json, null, 3);
+            document.getElementById('tokens').textContent = JSON.stringify(json, null, 3);
           });
         });
 
@@ -133,7 +133,7 @@
           })
           .then((json) => {
             facebookToken = json.access_token;
-            document.getElementById('facebookToken').innerText = JSON.stringify(json, null, 3);
+            document.getElementById('facebookToken').textContent = JSON.stringify(json, null, 3);
           });
         });
 
@@ -143,7 +143,7 @@
             return response.json();
           })
           .then((json) => {
-            document.getElementById('facebookLongToken').innerText = JSON.stringify(json, null, 3);
+            document.getElementById('facebookLongToken').textContent = JSON.stringify(json, null, 3);
           });
         });
       })();
